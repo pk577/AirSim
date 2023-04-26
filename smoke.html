@@ -58,7 +58,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	<input type="range" min=".05" max=".25" value="0.1" step="0.001" class="slider" id="oRadius" name="radius" onchange="obstacle_Radius = parseFloat(document.getElementById('oRadius').value); setupScene(1);">
 	<input type = "checkbox" id = "streamButton" onclick = "scene.showStreamlines = !scene.showStreamlines">Streamlines
 	<input type = "checkbox" id = "velocityButton" onclick = "scene.showVelocities = !scene.showVelocities">Velocities
-	<input type = "checkbox" name = "field" id = "pressureButton" onclick = "scene.showPressure = !scene.showPressure;"> Pressure
+	<input type = "checkbox"  style = "display: none;" name = "field" id = "pressureButton" onclick = "scene.showPressure = !scene.showPressure;">
 	<input type = "checkbox" name = "field" id = "smokeButton" onclick = "scene.showSmoke = !scene.showSmoke;" checked>Smoke
 	<input type = "checkbox" id = "overrelaxButton" onclick = "scene.overRelaxation = scene.overRelaxation == 1.0 ? 1.9 : 1.0" checked>Overrelax
 	Shape:
@@ -101,23 +101,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 	function cY(y) {
 		return canvas.height - y * cScale;
-	}
-
-
-    function cross_diag(x, y){
-        return Math.sqrt((x*x) + (y*y))
-    }
-
-    function coord_x(x, w){
-        return x+(w/2);
-    }
-    function coord_y(y, h){
-        return y+(h/2)
-    }
-
-	function euclid_dist(x1, y1, x2, y2){
-		return Math.sqrt( ((x1-x2) * (x1-x2)) + ((y1-y2) * (y1-y2)) )
-
 	}
 
 	// ----------------- start of simulator ------------------------------
@@ -634,8 +617,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 				c.arc(
 					mX, mY, cScale * r, 0.0, 2.0 * Math.PI); 
 				c.closePath();
-				//let cd = c_diag(cX(scene.obstacleX), cY(scene.obstacleY));
-				//c.rect(cX(scene.obstacleX)-(cScale*r/2) , cY(scene.obstacleY)-(cScale*r/2)  , cScale*r, cScale*r);
 				c.fill();
 
 				c.lineWidth = 3.0;
@@ -661,7 +642,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 				c.lineWidth = 3.0;
 				c.strokeStyle = "#000000";
 				c.beginPath();	
-				
 				c.rect(mX-(cScale*r) , mY-(cScale*r)  , cScale*2*r, cScale*2*r)
 				c.closePath();
 				c.stroke();
@@ -806,32 +786,33 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 			vy = (y - scene.obstacleY) / scene.dt;
 		}
 
-		function isInside(x1, y1, x2, y2, x3, y3, dx, dy) {
-				// Calculate the vectors between the three vertices of the triangle
-				let v1x = x3 - x1; 
-				let v1y = y3 - y1;
-				let v2x = x2 - x1;
-				let v2y = y2 - y1;
-				let v3x = dx - x1;
-				let v3y = dy - y1;
-
-				// Calculate the dot products of the vectors
-				let dot11 = v1x * v1x + v1y * v1y;
-				let dot12 = v1x * v2x + v1y * v2y;
-				let dot13 = v1x * v3x + v1y * v3y;
-				let dot22 = v2x * v2x + v2y * v2y;
-				let dot23 = v2x * v3x + v2y * v3y;
-
-				// Calculate the barycentric coordinates of the point
-				let invDenom = 1 / (dot11 * dot22 - dot12 * dot12);
-				let u = (dot22 * dot13 - dot12 * dot23) * invDenom;
-				let v = (dot11 * dot23 - dot12 * dot13) * invDenom;
-				 // Check if the point is inside the triangle
-  				return (u >= 0) && (v >= 0) && (u + v < 1);
-				
-			
+		//area of a triangle using three points
+		function area(x1, y1, x2, y2, x3, y3)
+		{
+			return Math.abs((x1*(y2-y3) + x2*(y3-y1)+ x3*(y1-y2))/2.0);
 		}
-
+		
+		//check if a point is inside of a triangle using points
+		function isInsideTriangle(x1, y1, x2, y2, x3, y3, x, y)
+		{
+			//area of triangle 
+			let A = area (x1, y1, x2, y2, x3, y3);
+			
+			//area of sub triangle 1
+			let A1 = area (x, y, x2, y2, x3, y3);
+			
+			//area of sub triangle 2
+			let A2 = area (x1, y1, x, y, x3, y3);
+			
+			//area of sub triangle 3   
+			let A3 = area (x1, y1, x2, y2, x, y);
+				
+			//Check if sum of A1, A2 and A3 is same as A
+			//floating point values, so we need to approximate solution
+			return (Math.abs(A - (A1+A2+A3)) < 0.000001);
+		}
+			
+		
 		scene.obstacleX = x;
 		scene.obstacleY = y;
 		var f = scene.fluid;
@@ -840,26 +821,30 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         
 		//circle collision
 		if(shape == 0){ 
-		    var r = scene.obstacleRadius;
+		
+			var r = scene.obstacleRadius;
 
-            for (var i = 1; i < f.numX-2; i++) {
-                for (var j = 1; j < f.numY-2; j++) {
-
-                    f.s[i*n + j] = 1.0;
-
-                    dx = (i + 0.5) * f.h - x;
-                    dy = (j + 0.5) * f.h - y;
-
-                    if (dx * dx + dy * dy < r * r) { //if in circle
-                        f.s[i*n + j] = 0.0; //there is obstacle
-                        f.m[i*n + j] = 1.0; // make it white to show the obstacle there
-                        f.u[i*n + j] = vx;
-                        f.u[(i+1)*n + j] = vx;
-                        f.v[i*n + j] = vy;
-                        f.v[i*n + j+1] = vy;
-                    }
-                }
-            }
+			for (var i = 1; i < f.numX-2; i++) {
+				for (var j = 1; j < f.numY-2; j++) {
+					//initial scalar value
+					f.s[i*n + j] = 1.0;
+					
+					//smoke particle cells
+					dx = (i + 0.5) * f.h;
+					dy = (j + 0.5) * f.h;
+					
+					//collision if center point of smoke within the radius (Euclidean Dist) 
+					if (Math.sqrt((dx - x)*(dx - x)+(dy - y)*(dy-y)) < r ) {
+						f.s[i*n + j] = 0.0; //set cell scalar value to 1
+						f.m[i*n + j] = 1.0; // make smoke white to show the obstacle there
+						//set velocities to updated mouse position
+						f.u[i*n + j] = vx;  
+						f.u[(i+1)*n + j] = vx;
+						f.v[i*n + j] = vy;
+						f.v[i*n + j+1] = vy;
+					}
+				}
+			}
         }
 		
 		//square collision
@@ -869,24 +854,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 for (var j = 1; j < f.numY-2; j++) {
 
                     f.s[i*n + j] = 1.0;
-
+						
                     dx = (i + 0.5) * f.h;
                     dy = (j + 0.5) * f.h;
 							
-					// each half of the square
-					const halfSide = r;
+					// each side of the square
+					const side = r;
 					// center of the square
 					const centerX = x;
 					const centerY = y;
-					/*
-						-----------
-						| -h | +h |
-						center(x, y)
-						| -h | +h |
-						-----------
-					*/
-					// we check each point of the smoke against each edge of the square. If the smoke lies in between each of these edges, it's colliding with the square.
-					if (dx >= centerX - halfSide && dx <= centerX + halfSide && dy >= centerY - halfSide && dy <= centerY + halfSide) {
+				
+					// we check each point of the smoke against each edge of the square. 
+					// If the smoke lies in between each of these edges, it's colliding with the square.
+					if (dx >= centerX - side && dx <= centerX + side && dy >= centerY - side && dy <= centerY + side) {
 						f.s[i*n + j] = 0.0; //there is obstacle
 						f.m[i*n + j] = 1.0; // make it white to show the obstacle there
 						f.u[i*n + j] = vx;
@@ -894,21 +874,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 						f.v[i*n + j] = vy;
 						f.v[i*n + j+1] = vy;
 					} 
-					
-	
-                }
+				}
             }
-            
-
-		}
+        }
 
 		//triangle collision
 		else if(shape == 2){ 
 	
 			var r = scene.obstacleRadius;
-			let x1=x-r; let y1=y;
-			let x2=x+r; let y2=y+r;
-			let x3=x+r; let y3=y-r;
+			let x1=x-r; 
+			let y1=y;
+			let x2=x+r; 
+			let y2=y+r;
+			let x3=x+r; 
+			let y3=y-r;
 			
             for (var i = 1; i < f.numX-2; i++) {
                 for (var j = 1; j < f.numY-2; j++) {
@@ -918,7 +897,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                     dx = (i + 0.5) * f.h;
                     dy = (j + 0.5) * f.h;
 							
-					if (isInside(x1,y1,x2,y2,x3,y3, dx, dy)){
+					if (isInsideTriangle(x1,y1,x2,y2,x3,y3, dx, dy)){
 					
 						f.s[i*n + j] = 0.0; //there is obstacle
 						f.m[i*n + j] = 1.0; // make it white to show the obstacle there
@@ -941,10 +920,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 			{
 				return Math.abs((x1*(y2-y3) + x2*(y3-y1)+ x3*(y1-y2))/2.0);
 			}
-			let x1=x-r; let y1=y;
-			let x2=x+r; let y2=y+(r/2);
-			let x3=x+r; let y3=y-(r/2);
-			let x4=(x+(3*r)); let y4=y;
+			let x1=x-r; 
+			let y1=y;
+			let x2=x+r; 
+			let y2=y+(r/2);
+			let x3=x+r; 
+			let y3=y-(r/2);
+			let x4=(x+(3*r)); 
+			let y4=y;
 			
             for (var i = 1; i < f.numX-2; i++) {
                 for (var j = 1; j < f.numY-2; j++) {
@@ -954,7 +937,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                     dx = (i + 0.5) * f.h;
                     dy = (j + 0.5) * f.h;
 							
-					if (isInside(x1,y1,x2,y2,x3,y3, dx, dy) || isInside(x4,y4, x2,y2,x3,y3, dx, dy)){
+					if (isInsideTriangle(x1,y1,x2,y2,x3,y3,dx,dy) || isInsideTriangle(x4,y4,x2,y2,x3,y3,dx,dy)){
 					
 						f.s[i*n + j] = 0.0; //there is obstacle
 						f.m[i*n + j] = 1.0; // make it white to show the obstacle there
@@ -963,9 +946,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 						f.v[i*n + j] = vy;
 						f.v[i*n + j+1] = vy;
 					}
-					
-	
-                }
+				}
 			}
 		}
 		// car collision
@@ -993,14 +974,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 x1 = cX(x1);
                 y1 = cY(y1);
                 var rad = cScale * r / 4;
-
-                // Check if point is inside car body
+				// Check if point is inside car body
                 if (x1 >= mX - 3 * rad && x1 <= mX + 3 * rad && y1 >= mY - 2 * rad && y1 <= mY) {
                     return true;
                 }
-
-                
-                // Check if point is inside front bumper
+				// Check if point is inside front bumper
                 var fBumperX1 = mX - 3 * rad;
                 var fBumperX2 = mX - 4 * rad;
                 var fBumperX3 = mX - 3 * rad;
@@ -1068,12 +1046,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 						f.v[i*n + j] = vy;
 						f.v[i*n + j+1] = vy;
 					} 
-					
-	
-                }
+				}
             }
         }
-        //else if(shape == 1)...
 		scene.showObstacle = true;
 	}   // END SET OBSTACLE
 
