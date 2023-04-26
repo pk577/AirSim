@@ -50,7 +50,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	<button class="button" onclick="setupScene(3)">Hires Tunnel</button>
 	<input type="range" min=".005" max="1" value="0.1" step="0.001" class="slider" id="myRange" name="radius" onchange="smoke_offset = document.getElementById('myRange').value; setupScene(1)">Smoke Radius
 	<input type="range" min=".05" max=".25" value="0.1" step="0.001" class="slider" id="oRadius" name="radius" onchange="obstacle_Radius = document.getElementById('oRadius').value; setupScene(1);">Shape Radius
-
 	<input type = "checkbox" id = "streamButton" onclick = "scene.showStreamlines = !scene.showStreamlines">Streamlines
 	<input type = "checkbox" id = "velocityButton" onclick = "scene.showVelocities = !scene.showVelocities">Velocities
 	<input type = "checkbox" name = "field" id = "pressureButton" onclick = "scene.showPressure = !scene.showPressure;"> Pressure
@@ -68,7 +67,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	<canvas id="myCanvas" style="border:2px solid"></canvas>
 	
 <script>
-    var shape = 0; //0:circle, 1:square, 2:triangle, 3:car
+    var shape = 0; //0:circle, 1:square, 2:triangle, 3:car, 4:ellipse, 5:car
 	var smoke_offset =0.1;
 	var obstacle_Radius = 0.1;
 	var canvas = document.getElementById("myCanvas");
@@ -354,6 +353,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		fluid: null
 	};
 
+    
 	function setupScene(sceneNr = 0) //only need 1 and 3
 	{	console.log(obstacle_Radius, shape);
 		scene.sceneNr = sceneNr;
@@ -617,28 +617,25 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 				c.fillStyle = "#000000";
 			else
 				c.fillStyle = "#DDDDDD";
-			if(shape == 0){
+			if(shape == 0){ //draw circle
 				c.beginPath();
 				c.arc(
 					cX(scene.obstacleX), cY(scene.obstacleY), cScale * r, 0.0, 2.0 * Math.PI); 
 				c.closePath();
 				//let cd = c_diag(cX(scene.obstacleX), cY(scene.obstacleY));
-				//c.rect(cX(scene.obstacleX)-(cScale*r/2) , cY(scene.obstacleY)-(cScale*r/2)  , cScale*r, cScale*r)
-				c.closePath();
+				//c.rect(cX(scene.obstacleX)-(cScale*r/2) , cY(scene.obstacleY)-(cScale*r/2)  , cScale*r, cScale*r);
 				c.fill();
 
 				c.lineWidth = 3.0;
 				c.strokeStyle = "#000000";
 				c.beginPath();	
-				c.arc(
-					cX(scene.obstacleX), cY(scene.obstacleY), cScale * r, 0.0, 2.0 * Math.PI); 
-					//c.rect(cX(scene.obstacleX)-(cScale*r/2) , cY(scene.obstacleY)-(cScale*r/2), cScale*r, cScale*r);
+				c.arc(cX(scene.obstacleX), cY(scene.obstacleY), cScale * r, 0.0, 2.0 * Math.PI); 
 				c.closePath();
 				c.stroke();
 				c.lineWidth = 1.0;
 
 			}
-			else if(shape == 1){
+			else if(shape == 1){ //draw square
 				
 				c.beginPath();
 				
@@ -657,42 +654,32 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 				c.lineWidth = 1.0;
 			}
 
-			else if(shape == 2){
-				
+			else if(shape == 2){ //draw triangle
+				//make area
 				c.beginPath();
-				
-				//let cd = c_diag(cX(scene.obstacleX), cY(scene.obstacleY));
-				
 				c.moveTo((cX(scene.obstacleX))-(cScale*r), cY(scene.obstacleY));
-			
 				c.lineTo(cX(scene.obstacleX) + (cScale*r),cY(scene.obstacleY) + (cScale*r));
 				c.lineTo(cX(scene.obstacleX) + (cScale*r),cY(scene.obstacleY) - (cScale*r));
 				c.lineTo(cX(scene.obstacleX) - (cScale*r), cY(scene.obstacleY));
 				c.stroke();
-				//c.lineTo(cX(100), cY(25));
 				c.fill();
 				c.closePath();
-		
 
+                //draw outline
 				c.lineWidth = 3.0;
 				c.strokeStyle = "#000000";
 				c.beginPath();	
-				
-					c.lineTo(cX(scene.obstacleX) + (cScale*r),cY(scene.obstacleY) + (cScale*r));
-					c.lineTo(cX(scene.obstacleX) + (cScale*r),cY(scene.obstacleY) - (cScale*r));
-					c.lineTo(cX(scene.obstacleX) - (cScale*r), cY(scene.obstacleY));
+                c.lineTo(cX(scene.obstacleX) + (cScale*r),cY(scene.obstacleY) + (cScale*r));
+                c.lineTo(cX(scene.obstacleX) + (cScale*r),cY(scene.obstacleY) - (cScale*r));
+                c.lineTo(cX(scene.obstacleX) - (cScale*r), cY(scene.obstacleY));
 				c.closePath();
 				c.stroke();
 				c.lineWidth = 1.0;
 			}
-			else if(shape == 3){
+			else if(shape == 3){//draw diamond
 				
 				c.beginPath();
-				
-				//let cd = c_diag(cX(scene.obstacleX), cY(scene.obstacleY));
-				
 				c.moveTo((cX(scene.obstacleX))-(cScale*r), cY(scene.obstacleY));
-			
 				c.lineTo(cX(scene.obstacleX) + (cScale*r),cY(scene.obstacleY) + (cScale*r/2));
 				c.lineTo(cX(scene.obstacleX) + (cScale*r),cY(scene.obstacleY) - (cScale*r/2));
 				c.lineTo(cX(scene.obstacleX) - (cScale*r), cY(scene.obstacleY));
@@ -700,7 +687,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 				c.lineTo((cX(scene.obstacleX) + ((cScale*r))*3), cY(scene.obstacleY));
 				c.lineTo(cX(scene.obstacleX) + (cScale*r), cY(scene.obstacleY) - (cScale*r/2));
 				c.stroke();
-		
 				c.fill();
 				c.closePath();
 				
@@ -716,9 +702,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 				c.stroke();
 				c.lineWidth = 1.0;
 			}
-			else if(shape == 4){
-				
-		
+			else if(shape == 4){ //draw ellipse
+
 				c.beginPath();
 				//c.ellipse(cX(scene.obstacleX))-(cScale*r, cY(scene.obstacleY), 50, 75, 1, 1, 1);
 				c.ellipse(cX(scene.obstacleX),  cY(scene.obstacleY), (cScale*r), 2*(cScale*r), Math.PI/2, 0, 2 * Math.PI);
@@ -743,10 +728,71 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 				c.stroke();
 				c.lineWidth = 1.0;
 			}
-		}
+            else if(shape == 5){
+                var mX = cX(scene.obstacleX);
+                var mY = cY(scene.obstacleY);
+                var rad = cScale * r / 4;
 
-        //for other shapes
-        //else if(shape == 1)...
+                //draw car body
+                c.beginPath();
+                c.moveTo(mX - 3 * rad, mY);
+                c.lineTo(mX + 3 * rad, mY);
+                c.lineTo(mX + 3 * rad, mY - 2 * rad);
+                c.lineTo(mX - 3 * rad, mY - 2 * rad);
+                c.lineTo(mX - 3 * rad, mY);
+                c.fillStyle = "#FF0000";
+                c.fill();
+                c.closePath();
+
+                //draw front bumper
+                c.beginPath();
+                c.moveTo(mX - 3 * rad, mY);
+                c.lineTo(mX - 4 * rad, mY);
+                c.lineTo(mX - 3 * rad, mY - 2 * rad);
+                c.lineTo(mX - 3 * rad, mY);
+                c.fill();
+                c.closePath();
+
+
+                //draw rear bumper
+                c.beginPath();
+                c.moveTo(mX + 3 * rad, mY);
+                c.lineTo(mX + 4 * rad, mY);
+                c.lineTo(mX + 3 * rad, mY - 2 * rad);
+                c.lineTo(mX + 3 * rad, mY);
+                c.fill();
+                c.closePath();
+
+                //draw roof
+                c.beginPath();
+                c.arc(mX, mY - 2 * rad, 1.5 * rad, Math.PI, 0);
+                c.fillStyle = "#DDDDDD";
+                c.fill();
+                c.closePath();
+
+                //outline roof
+                c.lineWidth = 3.0;
+				c.strokeStyle = "#000000";
+				c.beginPath();	
+				c.arc(mX, mY - 2 * rad, 1.5 * rad, Math.PI, 0);
+				c.closePath();
+				c.stroke();
+
+                //draw front wheel
+                c.beginPath();
+                c.arc(mX - 2 * rad, mY, rad, 0, 2 * Math.PI);
+                c.fillStyle = "#000000";
+                c.fill();
+                c.closePath();
+
+                //draw back wheel
+                c.beginPath();
+                c.arc(mX + 2 * rad, mY, rad, 0, 2 * Math.PI);
+                c.fillStyle = "#000000";
+                c.fill();
+                c.closePath();
+            }
+		}
 
 		if (scene.showPressure) {
 			var s = "pressure: " + minP.toFixed(0) + " - " + maxP.toFixed(0) + " N/m";
@@ -860,7 +906,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 		}
 
-		else if(shape == 2){
+		else if(shape == 2){ //triangle
 			//console.log(x, y);
 			var r = scene.obstacleRadius;
 
@@ -896,7 +942,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 }
 			}
 		}
-		else if(shape == 3){
+		else if(shape == 3){ //diamond
 			//console.log(x, y);
 			var r = scene.obstacleRadius;
 
@@ -933,7 +979,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 }
 			}
 		}
-		if(shape == 4){
+		else if(shape == 4){//ellipse
 			
 			function isInsideEllipse(dx, dy, cx, cy, a, b) {
 				//Calculate the distance between the point and the center of the ellipse
@@ -966,7 +1012,110 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 }
             }
 		}
-        //if shape not circle:
+        else if(shape == 5){ //car
+            var r = scene.obstacleRadius;
+
+            function isPointInsideTriangle(x1, y1, x2, y2, x3, y3, x, y) {
+                    // Calculate the areas of the sub-triangles formed by the point and the triangle's vertices
+                    var A = 1/2 * (-y2*y3 + y1*(-y2+y3) + x2*(x3-x1) + x1*y2 - x3*y1);
+                    var A1 = 1/2 * (-y2*y + y1*(-y2+y) + x2*(x-x1) + x1*y2 - x*y1);
+                    var A2 = 1/2 * (-y3*y + y2*(-y3+y) + x3*(x-x2) + x2*y3 - x*y2);
+                    var A3 = 1/2 * (-y1*y + y3*(-y1+y) + x1*(x-x3) + x3*y1 - x*y3);
+
+                    // Check if the sum of the sub-triangle areas is equal to the triangle's area
+                    if (A == A1 + A2 + A3) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+            }
+
+            function isPointInsideCar(x1, y1, r) {
+                var mX = cX(scene.obstacleX);
+                var mY = cY(scene.obstacleY);
+                x1 = cX(x1);
+                y1 = cY(y1);
+                var rad = cScale * r / 4;
+
+                // Check if point is inside car body
+                if (x1 >= mX - 3 * rad && x1 <= mX + 3 * rad && y1 >= mY - 2 * rad && y1 <= mY) {
+                    return true;
+                }
+
+                
+                // Check if point is inside front bumper
+                var fBumperX1 = mX - 3 * rad;
+                var fBumperX2 = mX - 4 * rad;
+                var fBumperX3 = mX - 3 * rad;
+                var fBumperY1 = mY;
+                var fBumperY2 = mY - 2 * rad;
+                var fBumperY3 = mY;
+
+                var isInsideFBumper = isPointInsideTriangle(x1, y1, fBumperX1, fBumperY1, fBumperX2, fBumperY2, fBumperX3, fBumperY3);
+                if (isInsideFBumper) {
+                    return true;
+                }
+
+                var rBumperX1 = mX + 3 * rad;
+                var rBumperX2 = mX + 4 * rad;
+                var rBumperX3 = mX + 3 * rad;
+                var rBumperY1 = mY;
+                var rBumperY2 = mY - 2 * rad;
+                var rBumperY3 = mY;
+
+                var isInsideRBumper = isPointInsideTriangle(x1, y1, rBumperX1, rBumperY1, rBumperX2, rBumperY2, rBumperX3, rBumperY3);
+                if (isInsideRBumper) {
+                    return true;
+                }
+
+                // Check if point is inside roof
+                var dx = x1 - mX;
+                var dy = y1 - (mY - 2 * rad);
+                var distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance <= 1.5 * rad) {
+                    return true;
+                }
+
+                // Check if point is inside front wheel
+                dx = x1 - (mX - 2 * rad);
+                dy = y1 - mY;
+                distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance <= rad) {
+                    return true;
+                }
+
+                // Check if point is inside back wheel
+                dx = x1 - (mX + 2 * rad);
+                dy = y1 - mY;
+                distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance <= rad) {
+                    return true;
+                }
+
+                return false;
+            }
+
+            for (var i = 1; i < f.numX-2; i++) {
+                for (var j = 1; j < f.numY-2; j++) {
+
+                    f.s[i*n + j] = 1.0;
+
+                    dx = (i + 0.5) * f.h;
+                    dy = (j + 0.5) * f.h;
+                    //console.log(isPointInsideCar(dx, dy));
+					if (isPointInsideCar(dx, dy, r)) {
+						f.s[i*n + j] = 0.0; //there is obstacle
+						f.m[i*n + j] = 1.0; // make it white to show the obstacle there
+						f.u[i*n + j] = vx;
+						f.u[(i+1)*n + j] = vx;
+						f.v[i*n + j] = vy;
+						f.v[i*n + j+1] = vy;
+					} 
+					
+	
+                }
+            }
+        }
         //else if(shape == 1)...
 		scene.showObstacle = true;
 	}   // END SET OBSTACLE
