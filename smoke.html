@@ -40,7 +40,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 				-webkit-transition: .2s;
 				transition: opacity .2s;
 			}
-			
+		
 		</style>
 	</head>
 	
@@ -48,8 +48,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 	<button class="button" onclick="setupScene(1)">Wind Tunnel</button>
 	<button class="button" onclick="setupScene(3)">Hires Tunnel</button>
-	<input type="range" min=".005" max="1" value="0.1" step="0.001" class="slider" id="myRange" name="radius" onchange="smoke_offset = document.getElementById('myRange').value; setupScene(1)">Smoke Radius
-	<input type="range" min=".05" max=".25" value="0.1" step="0.001" class="slider" id="oRadius" name="radius" onchange="obstacle_Radius = document.getElementById('oRadius').value; setupScene(1);">Shape Radius
+	Smoke Radius
+	<input type="range" min=".005" max="1" value="0.1" step="0.001" class="slider" id="myRange" name="radius" onchange="smoke_offset = document.getElementById('myRange').value; setupScene(1)">
+	Shape Radius
+	<input type="range" min=".05" max=".25" value="0.1" step="0.001" class="slider" id="oRadius" name="radius" onchange="obstacle_Radius = parseFloat(document.getElementById('oRadius').value); setupScene(1);">
 	<input type = "checkbox" id = "streamButton" onclick = "scene.showStreamlines = !scene.showStreamlines">Streamlines
 	<input type = "checkbox" id = "velocityButton" onclick = "scene.showVelocities = !scene.showVelocities">Velocities
 	<input type = "checkbox" name = "field" id = "pressureButton" onclick = "scene.showPressure = !scene.showPressure;"> Pressure
@@ -61,14 +63,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         <option value="2">Triangle</option>
 		<option value="3">Diamond</option>
 		<option value="4">Ellipse</option>
-        <option value="5">Car?</option>
+        <option value="5">Car</option>
     </select>
     <br>
-	<canvas id="myCanvas" style="border:2px solid"></canvas>
+	<canvas id="myCanvas" style="border:2px solid"></canvas> 
 	
 <script>
     var shape = 0; //0:circle, 1:square, 2:triangle, 3:car, 4:ellipse, 5:car
-	var smoke_offset =0.1;
+	var smoke_offset = 0.1;
 	var obstacle_Radius = 0.1;
 	var canvas = document.getElementById("myCanvas");
 	var c = canvas.getContext("2d");	
@@ -355,9 +357,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
     
 	function setupScene(sceneNr = 0) //only need 1 and 3
-	{	console.log(obstacle_Radius, shape);
+	{	//console.log(obstacle_Radius, shape);
 		scene.sceneNr = sceneNr;
+		console.log(obstacle_Radius);
 		scene.obstacleRadius = obstacle_Radius;
+		//console.log(scene.obstacleRadius);
 		scene.overRelaxation = 1.9;
 
 		scene.dt = 1.0 / 60.0;
@@ -421,7 +425,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 			}
 
 		}
-
+	
 		document.getElementById("streamButton").checked = scene.showStreamlines;
 		document.getElementById("velocityButton").checked = scene.showVelocities;
 		document.getElementById("pressureButton").checked = scene.showPressure;
@@ -611,13 +615,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 		if (scene.showObstacle) {
 
-			c.strokeW
+			//c.strokeW
+			
 			r = scene.obstacleRadius + f.h;
+		
 			if (scene.showPressure)
 				c.fillStyle = "#000000";
 			else
 				c.fillStyle = "#DDDDDD";
 			if(shape == 0){ //draw circle
+				//console.log(r);
 				c.beginPath();
 				c.arc(
 					cX(scene.obstacleX), cY(scene.obstacleY), cScale * r, 0.0, 2.0 * Math.PI); 
@@ -636,7 +643,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 			}
 			else if(shape == 1){ //draw square
-				
+			
 				c.beginPath();
 				
 				//let cd = c_diag(cX(scene.obstacleX), cY(scene.obstacleY));
