@@ -40,6 +40,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 				-webkit-transition: .2s;
 				transition: opacity .2s;
 			}
+			select{
+				margin: 5px;
+			}
 		
 		</style>
 	</head>
@@ -57,6 +60,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	<input type = "checkbox" name = "field" id = "pressureButton" onclick = "scene.showPressure = !scene.showPressure;"> Pressure
 	<input type = "checkbox" name = "field" id = "smokeButton" onclick = "scene.showSmoke = !scene.showSmoke;" checked>Smoke
 	<input type = "checkbox" id = "overrelaxButton" onclick = "scene.overRelaxation = scene.overRelaxation == 1.0 ? 1.9 : 1.0" checked>Overrelax
+	Shape:
 	<select name="Shapes" id="dropdown" onchange="shape = parseInt(document.getElementById('dropdown').value); setupScene(1)">
         <option value="0">Circle</option>
         <option value="1">Square</option>
@@ -65,6 +69,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		<option value="4">Ellipse</option>
         <option value="5">Car</option>
     </select>
+
     <br>
 	<canvas id="myCanvas" style="border:2px solid"></canvas> 
 	
@@ -357,11 +362,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
     
 	function setupScene(sceneNr = 0) //only need 1 and 3
-	{	//console.log(obstacle_Radius, shape);
+	{	
 		scene.sceneNr = sceneNr;
-		console.log(obstacle_Radius);
+		//console.log(obstacle_Radius);
 		scene.obstacleRadius = obstacle_Radius;
-		//console.log(scene.obstacleRadius);
 		scene.overRelaxation = 1.9;
 
 		scene.dt = 1.0 / 60.0;
@@ -614,9 +618,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		}
 
 		if (scene.showObstacle) {
-
-			//c.strokeW
-			
+	
 			r = scene.obstacleRadius + f.h;
 		
 			if (scene.showPressure)
@@ -712,10 +714,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 			else if(shape == 4){ //draw ellipse
 
 				c.beginPath();
-				//c.ellipse(cX(scene.obstacleX))-(cScale*r, cY(scene.obstacleY), 50, 75, 1, 1, 1);
 				c.ellipse(cX(scene.obstacleX),  cY(scene.obstacleY), (cScale*r), 2*(cScale*r), Math.PI/2, 0, 2 * Math.PI);
 				c.stroke();
-				//c.lineTo(cX(100), cY(25));
 				c.fill();
 				c.closePath();
 				
@@ -723,14 +723,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 				c.strokeStyle = "#000000";
 				c.beginPath();	
 				c.moveTo((cX(scene.obstacleX))-(cScale*r), cY(scene.obstacleY))
-				//c.lineTo(cX(scene.obstacleX) + (cScale*r),cY(scene.obstacleY) + (cScale*r));
-				//c.lineTo(cX(scene.obstacleX) + (cScale*r),cY(scene.obstacleY) - (cScale*r));
-				//c.lineTo(cX(scene.obstacleX) - (cScale*r), cY(scene.obstacleY));
-		
-				//c.moveTo(cX(scene.obstacleX) + (cScale*r), cY(scene.obstacleY) + (cScale*r));
-				//c.lineTo((cX(scene.obstacleX) + (cScale*r))*2, cY(scene.obstacleY));
-				//c.lineTo(cX(scene.obstacleX) + (cScale*r), cY(scene.obstacleY) - (cScale*r));
-				
 				c.closePath();
 				c.stroke();
 				c.lineWidth = 1.0;
@@ -799,6 +791,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 c.fill();
                 c.closePath();
             }
+			
 		}
 
 		if (scene.showPressure) {
@@ -821,7 +814,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 		function isInside(x1, y1, x2, y2, x3, y3, dx, dy) {
 				// Calculate the vectors between the three vertices of the triangle
-				let v1x = x3 - x1;
+				let v1x = x3 - x1; 
 				let v1y = y3 - y1;
 				let v2x = x2 - x1;
 				let v2y = y2 - y1;
@@ -850,7 +843,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		var f = scene.fluid;
 		var n = f.numY;
 		var cd = Math.sqrt(2) * f.h; //cross diagonal
-        if(shape == 0){ //circle
+        
+		//circle collision
+		if(shape == 0){ 
 		    var r = scene.obstacleRadius;
 
             for (var i = 1; i < f.numX-2; i++) {
@@ -872,11 +867,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 }
             }
         }
+		
+		//square collision
 		else if(shape == 1){
 			var r = scene.obstacleRadius;
-			
-
-            for (var i = 1; i < f.numX-2; i++) {
+			for (var i = 1; i < f.numX-2; i++) {
                 for (var j = 1; j < f.numY-2; j++) {
 
                     f.s[i*n + j] = 1.0;
@@ -913,14 +908,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 		}
 
-		else if(shape == 2){ //triangle
-			//console.log(x, y);
+		//triangle collision
+		else if(shape == 2){ 
+	
 			var r = scene.obstacleRadius;
-
-			function area(x1, y1, x2, y2, x3, y3)
-			{
-				return Math.abs((x1*(y2-y3) + x2*(y3-y1)+ x3*(y1-y2))/2.0);
-			}
 			let x1=x-r; let y1=y;
 			let x2=x+r; let y2=y+r;
 			let x3=x+r; let y3=y-r;
@@ -935,8 +926,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 							
 					if (isInside(x1,y1,x2,y2,x3,y3, dx, dy)){
 					
-					
-					//if (dx >= centerX - halfSide && dx <= centerX + halfSide && dy >= centerY - halfSide && dy <= centerY + halfSide) {
 						f.s[i*n + j] = 0.0; //there is obstacle
 						f.m[i*n + j] = 1.0; // make it white to show the obstacle there
 						f.u[i*n + j] = vx;
@@ -949,8 +938,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 }
 			}
 		}
-		else if(shape == 3){ //diamond
-			//console.log(x, y);
+
+		//diamond collision
+		else if(shape == 3){ 
 			var r = scene.obstacleRadius;
 
 			function area(x1, y1, x2, y2, x3, y3)
@@ -972,8 +962,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 							
 					if (isInside(x1,y1,x2,y2,x3,y3, dx, dy) || isInside(x4,y4, x2,y2,x3,y3, dx, dy)){
 					
-					
-					//if (dx >= centerX - halfSide && dx <= centerX + halfSide && dy >= centerY - halfSide && dy <= centerY + halfSide) {
 						f.s[i*n + j] = 0.0; //there is obstacle
 						f.m[i*n + j] = 1.0; // make it white to show the obstacle there
 						f.u[i*n + j] = vx;
@@ -986,18 +974,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 }
 			}
 		}
-		else if(shape == 4){//ellipse
-			
-			function isInsideEllipse(dx, dy, cx, cy, a, b) {
-				//Calculate the distance between the point and the center of the ellipse
-				let distance = Math.pow(dx - cx, 2) / Math.pow(b, 2) + Math.pow(dy - cy, 2) / Math.pow(a, 2);
-				return distance <= 1;
-				  // Calculate the distance between the point and the center of the ellipse
-				
-			}
+		//ellipse collision
+		else if(shape == 4){
 			var r = scene.obstacleRadius;
 			var a = r;
 			var b = r*2;
+			function isInsideEllipse(dx, dy, cx, cy, a, b) {
+				//Calculate the distance between the point and the center of the ellipse
+				let distance = Math.pow(dx - cx, 2) / Math.pow(b, 2) + Math.pow(dy - cy, 2) / Math.pow(a, 2);
+				return distance;
+				// Calculate the distance between the point and the center of the ellipse
+				
+			}
+			
             for (var i = 1; i < f.numX-2; i++) {
                 for (var j = 1; j < f.numY-2; j++) {
 
@@ -1006,10 +995,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                     dx = (i + 0.5) * f.h - x;
                     dy = (j + 0.5) * f.h - y;
 
-                    if (isInsideEllipse(dx, dy, x, y, a, b)) { 
-					
+                    if (isInsideEllipse(dx, dy, x, y, a, b)<1) {
+						console.log(isInsideEllipse(dx, dy, x, y, a, b));
 				
-                        f.s[i*n + j] = 0.0; //there is obstacle
+						f.s[i*n + j] = 0.0; //there is obstacle
                         f.m[i*n + j] = 1.0; // make it white to show the obstacle there
                         f.u[i*n + j] = vx;
                         f.u[(i+1)*n + j] = vx;
@@ -1019,7 +1008,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 }
             }
 		}
-        else if(shape == 5){ //car
+		// car collision
+        else if(shape == 5){ 
             var r = scene.obstacleRadius;
 
             function isPointInsideTriangle(x1, y1, x2, y2, x3, y3, x, y) {
