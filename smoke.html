@@ -49,10 +49,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	
 <body>
 
-	<button class="button" onclick="setupScene(1)">Wind Tunnel</button>
-	<button class="button" onclick="setupScene(3)">Hires Tunnel</button>
+	<button class="button" onclick="setupScene(1)">Reset</button>
+	Smoke Velocity
+	<input type="range" min="1" max="8" value="2" step="0.2" class="slider" id="vel" name="radius" onchange="vel_setting = parseFloat(document.getElementById('vel').value); setupScene(1)">
 	Smoke Radius
-	<input type="range" min=".005" max="1" value="0.1" step="0.001" class="slider" id="myRange" name="radius" onchange="smoke_offset = document.getElementById('myRange').value; setupScene(1)">
+	<input type="range" min=".001" max="1" value="0.1" step="0.001" class="slider" id="smoke_radius" name="radius" onchange="smoke_offset = parseFloat(document.getElementById('smoke_radius').value); setupScene(1)">
 	Shape Radius
 	<input type="range" min=".05" max=".25" value="0.1" step="0.001" class="slider" id="oRadius" name="radius" onchange="obstacle_Radius = parseFloat(document.getElementById('oRadius').value); setupScene(1);">
 	<input type = "checkbox" id = "streamButton" onclick = "scene.showStreamlines = !scene.showStreamlines">Streamlines
@@ -66,17 +67,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         <option value="1">Square</option>
         <option value="2">Triangle</option>
 		<option value="3">Diamond</option>
-		<option value="4">Ellipse</option>
-        <option value="5">Car</option>
+        <option value="4">Car</option>
     </select>
 
     <br>
 	<canvas id="myCanvas" style="border:2px solid"></canvas> 
 	
 <script>
-    var shape = 0; //0:circle, 1:square, 2:triangle, 3:car, 4:ellipse, 5:car
+    var shape = 0; //0:circle, 1:square, 2:triangle, 3:car, 4:car
 	var smoke_offset = 0.1;
 	var obstacle_Radius = 0.1;
+	var vel_setting = 2;
 	var canvas = document.getElementById("myCanvas");
 	var c = canvas.getContext("2d");	
 	canvas.width = window.innerWidth - 20;
@@ -391,7 +392,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 		if (sceneNr == 1 || sceneNr == 3) { // vortex shedding
 
-			var inVel = 2.0;
+			var inVel = vel_setting;
 			for (var i = 0; i < f.numX; i++) {
 				for (var j = 0; j < f.numY; j++) {
 					var s = 1.0;	// fluid
@@ -407,7 +408,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 			
 			//this is the thickness of the smoke pipe
 		
-			var pipeH =  (smoke_offset * f.numY);
+			var pipeH = smoke_offset * f.numY;
 			var minJ = Math.floor(0.5 * f.numY - 0.5*pipeH);
 			var maxJ = Math.floor(0.5 * f.numY + 0.5*pipeH);
 
@@ -626,10 +627,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 			else
 				c.fillStyle = "#DDDDDD";
 			if(shape == 0){ //draw circle
-				//console.log(r);
+				var mX = cX(scene.obstacleX);
+                var mY = cY(scene.obstacleY);
+			
 				c.beginPath();
 				c.arc(
-					cX(scene.obstacleX), cY(scene.obstacleY), cScale * r, 0.0, 2.0 * Math.PI); 
+					mX, mY, cScale * r, 0.0, 2.0 * Math.PI); 
 				c.closePath();
 				//let cd = c_diag(cX(scene.obstacleX), cY(scene.obstacleY));
 				//c.rect(cX(scene.obstacleX)-(cScale*r/2) , cY(scene.obstacleY)-(cScale*r/2)  , cScale*r, cScale*r);
@@ -645,11 +648,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 			}
 			else if(shape == 1){ //draw square
+				var mX = cX(scene.obstacleX);
+                var mY = cY(scene.obstacleY);
 			
 				c.beginPath();
 				
 				//let cd = c_diag(cX(scene.obstacleX), cY(scene.obstacleY));
-				c.rect(cX(scene.obstacleX)-(cScale*r) , cY(scene.obstacleY)-(cScale*r)  , cScale*2*r, cScale*2*r)
+				c.rect(mX-(cScale*r) , mY-(cScale*r)  , cScale*2*r, cScale*2*r)
 				c.closePath();
 				c.fill();
 
@@ -657,19 +662,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 				c.strokeStyle = "#000000";
 				c.beginPath();	
 				
-				c.rect(cX(scene.obstacleX)-(cScale*r) , cY(scene.obstacleY)-(cScale*r)  , cScale*2*r, cScale*2*r)
+				c.rect(mX-(cScale*r) , mY-(cScale*r)  , cScale*2*r, cScale*2*r)
 				c.closePath();
 				c.stroke();
 				c.lineWidth = 1.0;
 			}
 
 			else if(shape == 2){ //draw triangle
+				var mX = cX(scene.obstacleX);
+                var mY = cY(scene.obstacleY);
 				//make area
 				c.beginPath();
-				c.moveTo((cX(scene.obstacleX))-(cScale*r), cY(scene.obstacleY));
-				c.lineTo(cX(scene.obstacleX) + (cScale*r),cY(scene.obstacleY) + (cScale*r));
-				c.lineTo(cX(scene.obstacleX) + (cScale*r),cY(scene.obstacleY) - (cScale*r));
-				c.lineTo(cX(scene.obstacleX) - (cScale*r), cY(scene.obstacleY));
+				c.moveTo(mX-(cScale*r), mY);
+				c.lineTo(mX + (cScale*r),mY + (cScale*r));
+                c.lineTo(mX + (cScale*r), mY - (cScale*r));
+                c.lineTo(mX - (cScale*r), mY);
 				c.stroke();
 				c.fill();
 				c.closePath();
@@ -678,23 +685,25 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 				c.lineWidth = 3.0;
 				c.strokeStyle = "#000000";
 				c.beginPath();	
-                c.lineTo(cX(scene.obstacleX) + (cScale*r),cY(scene.obstacleY) + (cScale*r));
-                c.lineTo(cX(scene.obstacleX) + (cScale*r),cY(scene.obstacleY) - (cScale*r));
-                c.lineTo(cX(scene.obstacleX) - (cScale*r), cY(scene.obstacleY));
+                c.lineTo(mX + (cScale*r),mY + (cScale*r));
+                c.lineTo(mX + (cScale*r), mY - (cScale*r));
+                c.lineTo(mX - (cScale*r), mY);
 				c.closePath();
 				c.stroke();
 				c.lineWidth = 1.0;
 			}
 			else if(shape == 3){//draw diamond
+				var mX = cX(scene.obstacleX);
+                var mY = cY(scene.obstacleY);
 				
 				c.beginPath();
-				c.moveTo((cX(scene.obstacleX))-(cScale*r), cY(scene.obstacleY));
-				c.lineTo(cX(scene.obstacleX) + (cScale*r),cY(scene.obstacleY) + (cScale*r/2));
-				c.lineTo(cX(scene.obstacleX) + (cScale*r),cY(scene.obstacleY) - (cScale*r/2));
-				c.lineTo(cX(scene.obstacleX) - (cScale*r), cY(scene.obstacleY));
-				c.moveTo(cX(scene.obstacleX) + (cScale*r), cY(scene.obstacleY) + (cScale*r/2));
-				c.lineTo((cX(scene.obstacleX) + ((cScale*r))*3), cY(scene.obstacleY));
-				c.lineTo(cX(scene.obstacleX) + (cScale*r), cY(scene.obstacleY) - (cScale*r/2));
+				c.moveTo(mX-(cScale*r), mY);
+				c.lineTo(mX + (cScale*r), mY + (cScale*r/2));
+				c.lineTo(mX + (cScale*r),mY - (cScale*r/2));
+				c.lineTo(mX - (cScale*r), mY);
+				c.moveTo(mX + (cScale*r), mY + (cScale*r/2));
+				c.lineTo((mX + ((cScale*r))*3), mY);
+				c.lineTo(mX + (cScale*r), mY - (cScale*r/2));
 				c.stroke();
 				c.fill();
 				c.closePath();
@@ -702,32 +711,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 				c.lineWidth = 3.0;
 				c.strokeStyle = "#000000";
 				c.beginPath();	
-				c.moveTo((cX(scene.obstacleX))-(cScale*r), cY(scene.obstacleY))
-				c.lineTo(cX(scene.obstacleX) + (cScale*r),cY(scene.obstacleY) + (cScale*r/2));
-				c.lineTo((cX(scene.obstacleX) + ((cScale*r))*3), cY(scene.obstacleY));
-				c.lineTo(cX(scene.obstacleX) + (cScale*r), cY(scene.obstacleY) - (cScale*r/2));
+				c.moveTo(mX-(cScale*r), mY)
+				c.lineTo(mX + (cScale*r), mY + (cScale*r/2));
+				c.lineTo((mX + ((cScale*r))*3), mY);
+				c.lineTo(mX + (cScale*r), mY - (cScale*r/2));
 				
 				c.closePath();
 				c.stroke();
 				c.lineWidth = 1.0;
 			}
-			else if(shape == 4){ //draw ellipse
-
-				c.beginPath();
-				c.ellipse(cX(scene.obstacleX),  cY(scene.obstacleY), (cScale*r), 2*(cScale*r), Math.PI/2, 0, 2 * Math.PI);
-				c.stroke();
-				c.fill();
-				c.closePath();
-				
-				c.lineWidth = 3.0;
-				c.strokeStyle = "#000000";
-				c.beginPath();	
-				c.moveTo((cX(scene.obstacleX))-(cScale*r), cY(scene.obstacleY))
-				c.closePath();
-				c.stroke();
-				c.lineWidth = 1.0;
-			}
-            else if(shape == 5){
+	
+            else if(shape == 4){ // draw car
                 var mX = cX(scene.obstacleX);
                 var mY = cY(scene.obstacleY);
                 var rad = cScale * r / 4;
@@ -974,42 +968,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 }
 			}
 		}
-		//ellipse collision
-		else if(shape == 4){
-			var r = scene.obstacleRadius;
-			var a = r;
-			var b = r*2;
-			function isInsideEllipse(dx, dy, cx, cy, a, b) {
-				//Calculate the distance between the point and the center of the ellipse
-				let distance = Math.pow(dx - cx, 2) / Math.pow(b, 2) + Math.pow(dy - cy, 2) / Math.pow(a, 2);
-				return distance;
-				// Calculate the distance between the point and the center of the ellipse
-				
-			}
-			
-            for (var i = 1; i < f.numX-2; i++) {
-                for (var j = 1; j < f.numY-2; j++) {
-
-                    f.s[i*n + j] = 1.0;
-
-                    dx = (i + 0.5) * f.h - x;
-                    dy = (j + 0.5) * f.h - y;
-
-                    if (isInsideEllipse(dx, dy, x, y, a, b)<1) {
-						console.log(isInsideEllipse(dx, dy, x, y, a, b));
-				
-						f.s[i*n + j] = 0.0; //there is obstacle
-                        f.m[i*n + j] = 1.0; // make it white to show the obstacle there
-                        f.u[i*n + j] = vx;
-                        f.u[(i+1)*n + j] = vx;
-                        f.v[i*n + j] = vy;
-                        f.v[i*n + j+1] = vy;
-                    }
-                }
-            }
-		}
 		// car collision
-        else if(shape == 5){ 
+        else if(shape == 4){ 
             var r = scene.obstacleRadius;
 
             function isPointInsideTriangle(x1, y1, x2, y2, x3, y3, x, y) {
