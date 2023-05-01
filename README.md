@@ -7,3 +7,4 @@ Our goal was to add wind interaction with solid objects. We added a variety of o
 ## How to Run
 
 Simply download the smoke.html file and run it in your browser! It is important to have javascript enabled and hardware acceleration turned on for the best performance.
+You can also run it on github by clicking [here](https://pk577.github.io/AirSim/smoke.html)
